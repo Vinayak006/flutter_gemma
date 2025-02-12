@@ -99,6 +99,21 @@ class MobileInferenceModelSession extends InferenceModelSession {
     }
   }
 
+    @override
+  Future<String> getChatResponse(List<Message> messages) async {
+    _assertNotClosed();
+    await _awaitLastResponse();
+    final completer = _responseCompleter = Completer<void>();
+    try {
+      final String finalPrompt = isInstructionTuned
+          ? messages.take(4).map((e) => e.transformToChatPrompt).join("\n")
+          : messages.take(4).map((e) => e.text).join("\n");
+      return await _platformService.generateResponse(finalPrompt);
+    } finally {
+      completer.complete();
+    }
+  }
+
   @override
   Stream<String> getResponseAsync(String prompt) async* {
     _assertNotClosed();
@@ -131,6 +146,45 @@ class MobileInferenceModelSession extends InferenceModelSession {
       _asyncResponseController = null;
     }
   }
+
+   @override
+  Stream<String> getChatResponseAsync(List<Message> messages) async* {
+    _assertNotClosed();
+    await _awaitLastResponse();
+    final completer = _responseCompleter = Completer<void>();
+    try {
+      final String finalPrompt = isInstructionTuned
+          ? messages.take(4).map((e) => e.transformToChatPrompt).join("\n")
+          : messages.take(4).map((e) => e.text).join("\n");
+      final controller = _asyncResponseController = StreamController<String>();
+      eventChannel.receiveBroadcastStream().listen(
+        (event) {
+          if (event is Map &&
+              event.containsKey('code') &&
+              event['code'] == "ERROR") {
+            controller.addError(
+                Exception(event['message'] ?? 'Unknown async error occurred'));
+          } else if (event is String) {
+            controller.add(event);
+          } else {
+            controller.addError(Exception('Unknown event type: $event'));
+          }
+        },
+        onError: (error, st) {
+          controller.addError(error, st);
+        },
+        onDone: controller.close,
+      );
+
+      unawaited(_platformService.generateResponseAsync(finalPrompt));
+
+      yield* controller.stream;
+    } finally {
+      completer.complete();
+      _asyncResponseController = null;
+    }
+  }
+
 
   @override
   Future<void> close() async {

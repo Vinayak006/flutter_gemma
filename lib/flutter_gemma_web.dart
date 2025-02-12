@@ -140,6 +140,18 @@ class WebModelSession extends InferenceModelSession {
     onClose();
     throw UnimplementedError();
   }
+
+    @override
+  Future<String> getChatResponse(List<Message> messages) {
+    // TODO: implement getChatResponse
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<String> getChatResponseAsync(List<Message> messages) {
+    // TODO: implement getChatResponseAsync
+    throw UnimplementedError();
+  }
 }
 
 class WebModelManager extends ModelFileManager {

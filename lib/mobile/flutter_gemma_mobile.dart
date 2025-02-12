@@ -54,7 +54,7 @@ class FlutterGemma extends FlutterGemmaPlugin {
           loraRanks: supportedLoraRanks,
         );
         final model = _initializedModel = MobileInferenceModel(
-          isInstructionTuned: true,
+          isInstructionTuned: isInstructionTuned,
           modelManager: modelManager,
           onClose: () {
             _initializedModel = null;
