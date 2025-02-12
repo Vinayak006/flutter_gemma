@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_gemma/core/message.dart';
 import 'package:flutter_gemma/model_file_manager_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
@@ -87,12 +88,28 @@ abstract class InferenceModelSession {
   /// {@endtemplate}
   Future<String> getResponse(String prompt);
 
+  /// Generates a response for the given messages.
+  ///
+  /// {@template gemma.response}
+  /// Only one response can be generated at a time.
+  /// But it is safe to call this method multiple times. It will wait for the previous response to be generated.
+  /// {@endtemplate}
+  Future<String> getChatResponse(List<Message> messages);
+
+
   /// Generates a response for the given prompt. Returns a stream of tokens as they are generated.
   ///
   /// Stream will be closed when the response is generated.
   ///
   /// {@macro gemma.response}
   Stream<String> getResponseAsync(String prompt);
+
+  /// Generates a response for the given messages. Returns a stream of tokens as they are generated.
+  ///
+  /// Stream will be closed when the response is generated.
+  ///
+  /// {@macro gemma.response}
+  Stream<String> getChatResponseAsync(List<Message> messages);
 
   /// Closes and cleans up the model session.
   ///
